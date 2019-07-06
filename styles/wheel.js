@@ -21,7 +21,7 @@ export const ItemText = styled.Text`
   color: black;
 `;
 
-export const Sv = styled.ScrollView`
+export const WheelScroller = styled.ScrollView`
   width: 100%;
 `;
 

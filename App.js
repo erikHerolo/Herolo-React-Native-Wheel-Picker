@@ -63,7 +63,7 @@ const App = ({
         borderColor={borderColor}
         items={items}
       />
-      <Sv
+      <WheelScroller
         showsVerticalScrollIndicator={false}
         ref={scroller}
         onMomentumScrollEnd={event => {
@@ -75,7 +75,7 @@ const App = ({
         }}
       >
         {createList(options, itemHeight, itemStyles, textStyles, spaces)}
-      </Sv>
+      </WheelScroller>
     </ScrollWrapper>
   );
 };
