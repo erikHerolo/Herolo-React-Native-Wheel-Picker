@@ -3,12 +3,7 @@ import styled from "styled-components/native";
 
 import { Text } from "react-native";
 
-const scrollToNumber = (offset, itemHeight, scroller) => {
-  remain = offset % itemHeight;
-  const newPosition =
-    remain < itemHeight / 2 ? offset - remain : offset + (itemHeight - remain);
-  scroller.current.scrollTo({ y: newPosition });
-};
+import { scrollToNumber } from './utils/functions';
 
 const createList = (options, itemHeight, itemStyles, textStyles, spaces) => {
   return [
