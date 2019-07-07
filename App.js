@@ -1,20 +1,13 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import styled from "styled-components/native";
 
 import { Text } from "react-native";
-
-const scrollToNumber = (offset, itemHeight, scroller) => {
-  remain = offset % itemHeight;
-  const newPosition =
-    remain < itemHeight / 2 ? offset - remain : offset + (itemHeight - remain);
-  scroller.current.scrollTo({ y: newPosition });
-};
 
 const createList = (options, itemHeight, itemStyles, textStyles, spaces) => {
   return [
     ...spaces,
     ...options.map((value, index) => (
-      <Item index={index} style={itemStyles} itemHeight={itemHeight}>
+      <Item key={index} style={itemStyles} itemHeight={itemHeight}>
         <ItemText style={textStyles}>{value}</ItemText>
       </Item>
     )),
@@ -29,25 +22,18 @@ const App = ({
   itemStyles = {},
   textStyles = {},
   borderWidth = 2,
-  selected = 0,
-  onSelect = () => {},
+  selected = 10,
+  onSelect = value => {
+    console.log("value: ", value);
+  },
   borderColor = "black",
   options = [
     ...Array(50)
       .fill(" ")
-      .map((_, i) => i)
+      .map((_, i) => i + 50)
   ]
 }) => {
-  useEffect(() => {
-    scrollToNumber((itemHeight * items) / 2, itemHeight, scroller);
-  });
-
-  //TODO: Make two covers with border top/bottom instead of one
-  //TODO: Implement 'selected'
-  //TODO: Implement 'onSelect'
-
   const scroller = useRef(null);
-  items = ![3, 5, 7].includes(items) ? 5 : items; // TODO: Fix to  %2 === 1
 
   const itemHeight = height / items;
 
@@ -55,10 +41,34 @@ const App = ({
   const spaces = Array(items / 2 - 0.5)
     .fill(" ")
     .map((item, index) => (
-      <Item index={index} style={itemStyles} itemHeight={itemHeight}>
+      <Item style={itemStyles} itemHeight={itemHeight}>
         <Text>{item}</Text>
       </Item>
     ));
+
+  const lockOnItem = useCallback((offset, itemHeight) => {
+    const remain = offset % itemHeight;
+
+    const newPosition =
+      remain < itemHeight / 2
+        ? offset - remain
+        : offset + (itemHeight - remain);
+
+    scroller.current.scrollTo({ y: newPosition });
+
+    const selectedItem = Math.round(newPosition / itemHeight);
+
+    onSelect(options[selectedItem]);
+  }, []);
+
+  useEffect(() => {
+    setTimeout(() => {
+      lockOnItem(selected * itemHeight, itemHeight);
+    }, 200);
+  }, [selected]);
+
+  //TODO: Make two covers with border top/bottom instead of one
+  //TODO: Implement 'onSelect'
 
   return (
     <ScrollWrapper height={height} width={width}>
@@ -73,11 +83,7 @@ const App = ({
         showsVerticalScrollIndicator={false}
         ref={scroller}
         onMomentumScrollEnd={event => {
-          scrollToNumber(
-            event.nativeEvent.contentOffset.y,
-            itemHeight,
-            scroller
-          );
+          lockOnItem(event.nativeEvent.contentOffset.y, itemHeight, scroller);
         }}
       >
         {createList(options, itemHeight, itemStyles, textStyles, spaces)}
