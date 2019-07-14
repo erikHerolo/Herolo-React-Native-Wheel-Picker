@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 
 import { Text } from "react-native";
-import { ScrollWrapper, Item, ItemText, Sv, Cover } from './styles/wheel';
+import { ScrollWrapper, Item, ItemText, WheelScroller, Cover } from './styles/wheel';
 import { scrollToNumber } from './utils/functions';
 
 const createList = (options, itemHeight, itemStyles, textStyles, spaces) => {
