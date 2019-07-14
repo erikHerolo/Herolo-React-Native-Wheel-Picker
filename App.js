@@ -1,7 +1,14 @@
 import React, { useRef, useEffect, useCallback } from "react";
-import styled from "styled-components/native";
-
 import { Text } from "react-native";
+
+import {
+  ScrollWrapper,
+  Item,
+  ItemText,
+  WheelScroller,
+  Cover
+} from "./styles/wheel";
+import { lockOnItem } from "./utils/functions";
 
 const createList = (options, itemHeight, itemStyles, textStyles, spaces) => {
   return [
@@ -22,7 +29,7 @@ const App = ({
   itemStyles = {},
   textStyles = {},
   borderWidth = 2,
-  selected = 10,
+  selected = 999,
   onSelect = value => {
     console.log("value: ", value);
   },
@@ -33,6 +40,13 @@ const App = ({
       .map((_, i) => i + 50)
   ]
 }) => {
+  const doesIndexExist = options.length > selected && selected >= 0;
+  selected = doesIndexExist ? selected : 0;
+
+  if (!doesIndexExist) {
+    console.warn("given index is out of range");
+  }
+
   const scroller = useRef(null);
 
   const itemHeight = height / items;
@@ -46,26 +60,17 @@ const App = ({
       </Item>
     ));
 
-  const lockOnItem = useCallback((offset, itemHeight) => {
-    const remain = offset % itemHeight;
-
-    const newPosition =
-      remain < itemHeight / 2
-        ? offset - remain
-        : offset + (itemHeight - remain);
-
-    scroller.current.scrollTo({ y: newPosition });
-
-    const selectedItem = Math.round(newPosition / itemHeight);
-
-    onSelect(options[selectedItem]);
-  }, []);
-
   useEffect(() => {
     setTimeout(() => {
-      lockOnItem(selected * itemHeight, itemHeight);
+      lockOnItem({
+        offset: selected * itemHeight,
+        itemHeight,
+        scroller,
+        onSelect,
+        options
+      });
     }, 200);
-  }, [selected]);
+  }, [selected, scroller]);
 
   //TODO: Make two covers with border top/bottom instead of one
   //TODO: Implement 'onSelect'
@@ -79,54 +84,23 @@ const App = ({
         borderColor={borderColor}
         items={items}
       />
-      <Sv
+      <WheelScroller
         showsVerticalScrollIndicator={false}
         ref={scroller}
         onMomentumScrollEnd={event => {
-          lockOnItem(event.nativeEvent.contentOffset.y, itemHeight, scroller);
+          lockOnItem({
+            offset: event.nativeEvent.contentOffset.y,
+            itemHeight,
+            scroller,
+            onSelect,
+            options
+          });
         }}
       >
         {createList(options, itemHeight, itemStyles, textStyles, spaces)}
-      </Sv>
+      </WheelScroller>
     </ScrollWrapper>
   );
 };
-
-// TODO: Remove margin in production
-const ScrollWrapper = styled.View`
-  overflow: hidden;
-  height: ${props => props.height}px;
-  width: ${props => props.width}px;
-  justify-content: space-between;
-  align-items: center;
-  margin: 50px;
-`;
-
-const Item = styled.View`
-  height: ${props => props.itemHeight}px;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-`;
-
-const ItemText = styled.Text`
-  color: black;
-`;
-
-const Sv = styled.ScrollView`
-  width: 100%;
-`;
-
-const Cover = styled.View`
-  position: absolute;
-  top: ${({ itemHeight, items }) => itemHeight * (items / 2 - 0.5)}px;
-  left: -25%;
-  height: ${props => props.itemHeight}px;
-  width: 150%;
-  border-top-width: ${props => props.borderWidth}px;
-  border-top-color: ${props => props.borderColor};
-  background-color: rgba(255, 255, 255, 0);
-  z-index: 1;
-`;
 
 export default App;
