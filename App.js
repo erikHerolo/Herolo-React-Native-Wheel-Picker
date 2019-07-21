@@ -1,38 +1,26 @@
-import React, { useRef, useCallback } from "react";
-import { Text } from "react-native";
-
-import {
-  ScrollWrapper,
-  Item,
-  ItemText,
-  WheelScroller,
-  Cover
-} from "./styles/wheel";
-import { lockOnItem } from "./utils/functions";
+import React, { useRef, useCallback } from 'react';
+import { Text } from 'react-native';
+import PropTypes from 'prop-types';
+import { ScrollWrapper, Item, ItemText, WheelScroller, Cover } from './styles/wheel';
+import { lockOnItem } from './utils/functions';
 
 const App = ({
-  height = 200,
-  width = 80,
-  items = 7,
-  itemStyles = {},
-  textStyles = {},
-  borderWidth = 2,
-  selected = 9,
-  onSelect = value => {
-    console.log("value: ", value);
-  },
-  borderColor = "black",
-  options = [
-    ...Array(50)
-      .fill(" ")
-      .map((_, i) => i + 50)
-  ]
+  height,
+  width,
+  items,
+  itemStyles,
+  textStyles,
+  borderWidth,
+  selected,
+  onSelect,
+  borderColor,
+  options,
 }) => {
   const doesIndexExist = options.length > selected && selected >= 0;
   selected = doesIndexExist ? selected : 0;
 
   if (!doesIndexExist) {
-    console.warn("given index is out of range");
+    console.warn('given index is out of range');
   }
 
   const scroller = useRef(null);
@@ -42,13 +30,9 @@ const App = ({
   // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
   const spaces = isTop =>
     Array(items / 2 - 0.5)
-      .fill(" ")
+      .fill(' ')
       .map((item, index) => (
-        <Item
-          key={isTop ? `top-space${index}` : `bottom-space${index}`}
-          style={itemStyles}
-          itemHeight={itemHeight}
-        >
+        <Item key={isTop ? `top-space${index}` : `bottom-space${index}`} style={itemStyles} itemHeight={itemHeight}>
           <Text>{item}</Text>
         </Item>
       ));
@@ -61,7 +45,7 @@ const App = ({
           <ItemText style={textStyles}>{value}</ItemText>
         </Item>
       )),
-      ...spaces(false)
+      ...spaces(false),
     ];
   }, []);
 
@@ -72,7 +56,7 @@ const App = ({
         itemHeight,
         scroller,
         onSelect,
-        options
+        options,
       }),
     [options, onSelect, itemHeight]
   );
@@ -92,14 +76,38 @@ const App = ({
         onLayout={() => initialLock(selected * itemHeight)}
         showsVerticalScrollIndicator={false}
         ref={scroller}
-        onMomentumScrollEnd={event =>
-          initialLock(event.nativeEvent.contentOffset.y)
-        }
+        onMomentumScrollEnd={event => initialLock(event.nativeEvent.contentOffset.y)}
       >
         {createList(itemStyles, textStyles)}
       </WheelScroller>
     </ScrollWrapper>
   );
+};
+
+App.propTypes = {
+  height: PropTypes.number,
+  width: PropTypes.number,
+  items: PropTypes.number,
+  itemStyles: PropTypes.object,
+  textStyles: PropTypes.object,
+  borderWidth: PropTypes.number,
+  selected: PropTypes.number,
+  onSelect: PropTypes.func.isRequired,
+  borderColor: PropTypes.string,
+  options: PropTypes.array.isRequired,
+};
+
+App.defaultProps = {
+  height: 200,
+  width: 80,
+  items: 7,
+  itemStyles: {},
+  textStyles: {},
+  borderWidth: 2,
+  selected: 9,
+  onSelect: value => console.log('value: ', value),
+  borderColor: 'black',
+  options: Array(50).map((_, i) => i + 50),
 };
 
 export default App;
