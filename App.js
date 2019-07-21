@@ -107,7 +107,9 @@ App.defaultProps = {
   selected: 9,
   onSelect: value => console.log('value: ', value),
   borderColor: 'black',
-  options: Array(50).map((_, i) => i + 50),
+  options: Array(50)
+    .fill('')
+    .map((_, i) => i + 50),
 };
 
 export default App;
