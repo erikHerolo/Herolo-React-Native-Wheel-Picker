@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useCallback } from "react";
 import { Text } from "react-native";
 
 import {
@@ -10,18 +10,6 @@ import {
 } from "./styles/wheel";
 import { lockOnItem } from "./utils/functions";
 
-const createList = (options, itemHeight, itemStyles, textStyles, spaces) => {
-  return [
-    ...spaces,
-    ...options.map((value, index) => (
-      <Item key={index} style={itemStyles} itemHeight={itemHeight}>
-        <ItemText style={textStyles}>{value}</ItemText>
-      </Item>
-    )),
-    ...spaces
-  ];
-};
-
 const App = ({
   height = 200,
   width = 80,
@@ -29,7 +17,7 @@ const App = ({
   itemStyles = {},
   textStyles = {},
   borderWidth = 2,
-  selected = 999,
+  selected = 9,
   onSelect = value => {
     console.log("value: ", value);
   },
@@ -52,28 +40,44 @@ const App = ({
   const itemHeight = height / items;
 
   // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
-  const spaces = Array(items / 2 - 0.5)
-    .fill(" ")
-    .map((item, index) => (
-      <Item style={itemStyles} itemHeight={itemHeight}>
-        <Text>{item}</Text>
-      </Item>
-    ));
+  const spaces = isTop =>
+    Array(items / 2 - 0.5)
+      .fill(" ")
+      .map((item, index) => (
+        <Item
+          key={isTop ? `top-space${index}` : `bottom-space${index}`}
+          style={itemStyles}
+          itemHeight={itemHeight}
+        >
+          <Text>{item}</Text>
+        </Item>
+      ));
 
-  useEffect(() => {
-    setTimeout(() => {
+  const createList = useCallback((itemStyles, textStyles) => {
+    return [
+      ...spaces(true),
+      ...options.map((value, index) => (
+        <Item key={index} style={itemStyles} itemHeight={itemHeight}>
+          <ItemText style={textStyles}>{value}</ItemText>
+        </Item>
+      )),
+      ...spaces(false)
+    ];
+  }, []);
+
+  const initialLock = useCallback(
+    offset =>
       lockOnItem({
-        offset: selected * itemHeight,
+        offset,
         itemHeight,
         scroller,
         onSelect,
         options
-      });
-    }, 200);
-  }, [selected, scroller]);
+      }),
+    [options, onSelect, itemHeight]
+  );
 
   //TODO: Make two covers with border top/bottom instead of one
-  //TODO: Implement 'onSelect'
 
   return (
     <ScrollWrapper height={height} width={width}>
@@ -85,19 +89,14 @@ const App = ({
         items={items}
       />
       <WheelScroller
+        onLayout={() => initialLock(selected * itemHeight)}
         showsVerticalScrollIndicator={false}
         ref={scroller}
-        onMomentumScrollEnd={event => {
-          lockOnItem({
-            offset: event.nativeEvent.contentOffset.y,
-            itemHeight,
-            scroller,
-            onSelect,
-            options
-          });
-        }}
+        onMomentumScrollEnd={event =>
+          initialLock(event.nativeEvent.contentOffset.y)
+        }
       >
-        {createList(options, itemHeight, itemStyles, textStyles, spaces)}
+        {createList(itemStyles, textStyles)}
       </WheelScroller>
     </ScrollWrapper>
   );
