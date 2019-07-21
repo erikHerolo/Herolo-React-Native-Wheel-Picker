@@ -1,20 +1,14 @@
-import React, { useRef, useEffect } from "react";
-
+import React, { useRef, useCallback } from "react";
 import { Text } from "react-native";
-import { ScrollWrapper, Item, ItemText, WheelScroller, Cover } from './styles/wheel';
-import { scrollToNumber } from './utils/functions';
 
-const createList = (options, itemHeight, itemStyles, textStyles, spaces) => {
-  return [
-    ...spaces,
-    ...options.map((value, index) => (
-      <Item index={index} style={itemStyles} itemHeight={itemHeight}>
-        <ItemText style={textStyles}>{value}</ItemText>
-      </Item>
-    )),
-    ...spaces
-  ];
-};
+import {
+  ScrollWrapper,
+  Item,
+  ItemText,
+  WheelScroller,
+  Cover
+} from "./styles/wheel";
+import { lockOnItem } from "./utils/functions";
 
 const App = ({
   height = 200,
@@ -23,36 +17,67 @@ const App = ({
   itemStyles = {},
   textStyles = {},
   borderWidth = 2,
-  selected = 0,
-  onSelect = () => {},
+  selected = 9,
+  onSelect = value => {
+    console.log("value: ", value);
+  },
   borderColor = "black",
   options = [
     ...Array(50)
       .fill(" ")
-      .map((_, i) => i)
+      .map((_, i) => i + 50)
   ]
 }) => {
-  useEffect(() => {
-    scrollToNumber((itemHeight * items) / 2, itemHeight, scroller);
-  });
+  const doesIndexExist = options.length > selected && selected >= 0;
+  selected = doesIndexExist ? selected : 0;
 
-  //TODO: Make two covers with border top/bottom instead of one
-  //TODO: Implement 'selected'
-  //TODO: Implement 'onSelect'
+  if (!doesIndexExist) {
+    console.warn("given index is out of range");
+  }
 
   const scroller = useRef(null);
-  items = ![3, 5, 7].includes(items) ? 5 : items; // TODO: Fix to  %2 === 1
 
   const itemHeight = height / items;
 
   // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
-  const spaces = Array(items / 2 - 0.5)
-    .fill(" ")
-    .map((item, index) => (
-      <Item index={index} style={itemStyles} itemHeight={itemHeight}>
-        <Text>{item}</Text>
-      </Item>
-    ));
+  const spaces = isTop =>
+    Array(items / 2 - 0.5)
+      .fill(" ")
+      .map((item, index) => (
+        <Item
+          key={isTop ? `top-space${index}` : `bottom-space${index}`}
+          style={itemStyles}
+          itemHeight={itemHeight}
+        >
+          <Text>{item}</Text>
+        </Item>
+      ));
+
+  const createList = useCallback((itemStyles, textStyles) => {
+    return [
+      ...spaces(true),
+      ...options.map((value, index) => (
+        <Item key={index} style={itemStyles} itemHeight={itemHeight}>
+          <ItemText style={textStyles}>{value}</ItemText>
+        </Item>
+      )),
+      ...spaces(false)
+    ];
+  }, []);
+
+  const initialLock = useCallback(
+    offset =>
+      lockOnItem({
+        offset,
+        itemHeight,
+        scroller,
+        onSelect,
+        options
+      }),
+    [options, onSelect, itemHeight]
+  );
+
+  //TODO: Make two covers with border top/bottom instead of one
 
   return (
     <ScrollWrapper height={height} width={width}>
@@ -64,21 +89,17 @@ const App = ({
         items={items}
       />
       <WheelScroller
+        onLayout={() => initialLock(selected * itemHeight)}
         showsVerticalScrollIndicator={false}
         ref={scroller}
-        onMomentumScrollEnd={event => {
-          scrollToNumber(
-            event.nativeEvent.contentOffset.y,
-            itemHeight,
-            scroller
-          );
-        }}
+        onMomentumScrollEnd={event =>
+          initialLock(event.nativeEvent.contentOffset.y)
+        }
       >
-        {createList(options, itemHeight, itemStyles, textStyles, spaces)}
+        {createList(itemStyles, textStyles)}
       </WheelScroller>
     </ScrollWrapper>
   );
 };
-
 
 export default App;
