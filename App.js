@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { Text } from 'react-native';
 import PropTypes from 'prop-types';
 import { ScrollWrapper, Item, ItemText, WheelScroller, Cover } from './styles/wheel';
@@ -26,6 +26,10 @@ const App = ({
   const scroller = useRef(null);
 
   const itemHeight = height / items;
+
+  useEffect(()=> {
+    initialLock(selected * itemHeight)
+  }, [selected]);
 
   // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
   const spaces = isTop =>
