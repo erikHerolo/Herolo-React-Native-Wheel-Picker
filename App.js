@@ -1,160 +1,220 @@
-import React, {useCallback, useRef, useState} from 'react';
-import {Animated, Text} from 'react-native';
-import PropTypes from 'prop-types';
-import {Cover, Item, ItemText, ScrollWrapper, WheelScroller} from './styles/wheel';
-import {lockOnItem} from './utils/functions';
-
+import React, { useCallback, useRef, useState } from "react";
+import { Animated, Text } from "react-native";
+import PropTypes from "prop-types";
+import {
+  Cover,
+  Item,
+  ItemText,
+  ScrollWrapper,
+  WheelScroller
+} from "./styles/wheel";
+import { lockOnItem } from "./utils/functions";
 
 const App = ({
-                 height,
-                 width,
-                 items,
-                 itemStyles,
-                 textStyles,
-                 borderWidth,
-                 selected,
-                 onSelect,
-                 borderColor,
-                 options,
-             }) => {
-    const doesIndexExist = options.length > selected && selected >= 0;
-    selected = doesIndexExist ? selected : 0;
+  height,
+  width,
+  numOfDisplayedItems,
+  itemStyles,
+  textStyles,
+  borderWidth,
+  selected,
+  onSelect,
+  borderColor,
+  options
+}) => {
+  const doesIndexExist = options.length > selected && selected >= 0;
+  selected = doesIndexExist ? selected : 0;
 
-    if (!doesIndexExist) {
-        console.warn('given index is out of range');
+  if (!doesIndexExist) {
+    console.warn("given index is out of range");
+  }
+
+  const scroller = useRef(null);
+
+  const itemHeight = height / numOfDisplayedItems;
+
+  // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
+  const spaces = isTop =>
+    Array(numOfDisplayedItems / 2 - 0.5)
+      .fill(" ")
+      .map((item, index) => (
+        <Item
+          key={isTop ? `top-space${index}` : `bottom-space${index}`}
+          style={itemStyles}
+          itemHeight={itemHeight}
+        >
+          <Text>{item}</Text>
+        </Item>
+      ));
+
+  const calculateDisplayedItemHeights = useCallback(
+    (numOfDisplayedItems, itemHeight, distanceFromViewCenter) => {
+      const arr = [];
+      const middleItem = Math.floor(numOfDisplayedItems / 2) - 1;
+
+      for (let i = 1; i <= numOfDisplayedItems; i++) {
+        arr.push(distanceFromViewCenter + (i - middleItem) * itemHeight);
+      }
+
+      return arr;
+    },
+    []
+  );
+
+  const getDegreesByItemAmount = useCallback(numOfDisplayedItems => {
+    const arr = [];
+    let stepDegrees = 180 / numOfDisplayedItems;
+    const middleItem = Math.floor(numOfDisplayedItems / 2) - 1;
+
+    for (let i = 1; i <= numOfDisplayedItems; i++) {
+      arr.push(`${(i - middleItem) * stepDegrees}deg`);
     }
 
-    const scroller = useRef(null);
+    return arr;
+  }, []);
 
-    const itemHeight = height / items;
+  const getOpacityByItemAmount = useCallback(numOfDisplayedItems => {
+    const arr = [];
+    const middleItem = Math.floor(numOfDisplayedItems / 2);
+    const stepOpacity = 1 / middleItem;
 
-    // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
-    const spaces = isTop =>
-        Array(items / 2 - 0.5)
-            .fill(' ')
-            .map((item, index) => (
-                <Item key={isTop ? `top-space${index}` : `bottom-space${index}`} style={itemStyles}
-                      itemHeight={itemHeight}>
-                    <Text>{item}</Text>
-                </Item>
-            ));
+    for (let i = 0; i < numOfDisplayedItems; i++) {
+      const opacity = Math.abs(Math.abs((i - middleItem) * stepOpacity) - 1);
 
-    const createList = useCallback((itemStyles, textStyles, animationValue) => {
-        const middleItem = Math.floor(options.length / 2) - 1;
-        return [
-            ...spaces(true),
-            ...options.map((value, index) => {
-                const distanceFromViewCenter = Math.abs(index * itemHeight);
-                console.log(distanceFromViewCenter);
-                const inputRange = [
-                    distanceFromViewCenter - 2 * itemHeight,
-                    distanceFromViewCenter - itemHeight,
-                    distanceFromViewCenter, // Middle of picker
-                    distanceFromViewCenter + itemHeight,
-                    distanceFromViewCenter + 2 * itemHeight,
-                ];
-                return (
-                    <Item key={index} style={[{
-                        // transform: [
-                        //     { rotateX: `${(middleItem - index) * 45}deg` }
-                        // ],
-                        transform: [
-                            {
-                                rotateX: animationValue.interpolate({
-                                    inputRange,
-                                    outputRange: ['-72deg', '-36deg', '0deg', '36deg', '72deg'],
-                                })
-                            }
-                        ],
-                        opacity: animationValue.interpolate({
-                            inputRange,
-                            outputRange: [0.1, 0.3, 1.0, 0.3, 0.1],
-                        })
-                    }, itemStyles]} itemHeight={itemHeight} as={Animated.View}>
-                        <ItemText style={textStyles}>{value}</ItemText>
-                    </Item>
-                );
-            }),
-            ...spaces(false),
-        ];
-    }, []);
+      arr.push(opacity === 0 ? stepOpacity : opacity);
+    }
 
-    const initialLock = useCallback(
-        offset =>
-            lockOnItem({
-                offset,
-                itemHeight,
-                scroller,
-                onSelect,
-                options,
-            }),
-        [options, onSelect, itemHeight]
-    );
+    return arr;
+  }, []);
 
+  const getHeightByIndex = useCallback(
+    (index, numOfDisplayedItems, options) => {
+      let stepDegrees = 180 / numOfDisplayedItems;
 
-    const animatedValueScrollY = new Animated.Value(0);
+      const middleItem = Math.floor(numOfDisplayedItems / 2) - 1;
 
-    // const onScroll = Animated.event([{nativeEvent: {contentOffset: {y: scrollerY}}}], {useNativeDriver: true});
-    // const onScroll = e => console.log({e});
-    const [scrollY, setScrollY] = useState(animatedValueScrollY);
+      //implement
+    },
+    []
+  );
 
-    //TODO: Make two covers with border top/bottom instead of one
+  const createList = useCallback((itemStyles, textStyles, animationValue) => {
+    return [
+      ...spaces(true),
+      ...options.map((value, index) => {
+        const distanceFromViewCenter = Math.abs(index * itemHeight);
 
-    return (
-        <ScrollWrapper height={height} width={width}>
-            <Cover
-                pointerEvents="box-none"
-                itemHeight={itemHeight}
-                borderWidth={borderWidth}
-                borderColor={borderColor}
-                items={items}
-            />
-            <WheelScroller
-                as={Animated.ScrollView}
-                onLayout={() => initialLock(selected * itemHeight)}
-                ref={scroller}
-                onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { y: animatedValueScrollY } } }],
-                    {
-                        useNativeDriver: true,
-                    }
-                )}
-                scrollEventThrottle={16}
-                showsVerticalScrollIndicator={false}
-                onMomentumScrollEnd={event => initialLock(event.nativeEvent.contentOffset.y)}
-            >
-                {createList(itemStyles, textStyles, animatedValueScrollY)}
-            </WheelScroller>
-        </ScrollWrapper>
-    );
+        const inputRange = calculateDisplayedItemHeights(
+          numOfDisplayedItems,
+          itemHeight,
+          distanceFromViewCenter
+        );
+
+        // const newItemHeight = getHeightByDegrees(index, numOfDisplayedItems);
+
+        return (
+          <Item
+            key={index}
+            style={[
+              {
+                transform: [
+                  {
+                    rotateX: animationValue.interpolate({
+                      inputRange,
+                      outputRange: getDegreesByItemAmount(numOfDisplayedItems)
+                    })
+                  }
+                ],
+                opacity: animationValue.interpolate({
+                  inputRange: inputRange.map(el => el - 2 * itemHeight),
+                  outputRange: getOpacityByItemAmount(numOfDisplayedItems)
+                })
+              },
+              itemStyles
+            ]}
+            itemHeight={itemHeight}
+            as={Animated.View}
+          >
+            <ItemText style={textStyles}>{value}</ItemText>
+          </Item>
+        );
+      }),
+      ...spaces(false)
+    ];
+  }, []);
+
+  const initialLock = useCallback(
+    offset =>
+      lockOnItem({
+        offset,
+        itemHeight,
+        scroller,
+        onSelect,
+        options
+      }),
+    [options, onSelect, itemHeight]
+  );
+
+  const animatedValueScrollY = new Animated.Value(0);
+
+  // const onScroll = Animated.event([{nativeEvent: {contentOffset: {y: scrollerY}}}], {useNativeDriver: true});
+  // const onScroll = e => console.log({e});
+  const [scrollY, setScrollY] = useState(animatedValueScrollY);
+
+  //TODO: Make two covers with border top/bottom instead of one
+
+  console.log("redered");
+
+  return (
+    <ScrollWrapper height={height} width={width}>
+      <WheelScroller
+        as={Animated.ScrollView}
+        onLayout={() => initialLock(selected * itemHeight)}
+        ref={scroller}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: animatedValueScrollY } } }],
+          {
+            useNativeDriver: true
+          }
+        )}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        onMomentumScrollEnd={event =>
+          initialLock(event.nativeEvent.contentOffset.y)
+        }
+      >
+        {createList(itemStyles, textStyles, animatedValueScrollY)}
+      </WheelScroller>
+    </ScrollWrapper>
+  );
 };
 
 App.propTypes = {
-    height: PropTypes.number,
-    width: PropTypes.number,
-    items: PropTypes.number,
-    itemStyles: PropTypes.object,
-    textStyles: PropTypes.object,
-    borderWidth: PropTypes.number,
-    selected: PropTypes.number,
-    onSelect: PropTypes.func.isRequired,
-    borderColor: PropTypes.string,
-    options: PropTypes.array.isRequired,
+  height: PropTypes.number,
+  width: PropTypes.number,
+  numOfDisplayedItems: PropTypes.number,
+  itemStyles: PropTypes.object,
+  textStyles: PropTypes.object,
+  borderWidth: PropTypes.number,
+  selected: PropTypes.number,
+  onSelect: PropTypes.func.isRequired,
+  borderColor: PropTypes.string,
+  options: PropTypes.array.isRequired
 };
 
 App.defaultProps = {
-    height: 400,
-    width: 80,
-    items: 7,
-    itemStyles: {},
-    textStyles: {},
-    borderWidth: 2,
-    selected: 9,
-    onSelect: value => console.log('value: ', value),
-    borderColor: 'black',
-    options: Array(50)
-        .fill('')
-        .map((_, i) => i + 50),
+  height: 400,
+  width: 80,
+  numOfDisplayedItems: 11,
+  itemStyles: {},
+  textStyles: {},
+  borderWidth: 2,
+  selected: 9,
+  onSelect: value => console.log("value: ", value),
+  borderColor: "black",
+  options: Array(50)
+    .fill("")
+    .map((_, i) => i + 50)
 };
 
 export default App;

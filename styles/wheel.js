@@ -27,7 +27,8 @@ export const WheelScroller = styled.ScrollView`
 
 export const Cover = styled.View`
   position: absolute;
-  top: ${({ itemHeight, items }) => itemHeight * (items / 2 - 0.5)}px;
+  top: ${({ itemHeight, numOfDisplayedItems }) =>
+    itemHeight * (numOfDisplayedItems / 2 - 0.5)}px;
   left: -25%;
   height: ${props => props.itemHeight}px;
   width: 150%;
