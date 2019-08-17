@@ -10,7 +10,6 @@ export const lockOnItem = ({
     const newPosition =
         remain < itemHeight / 2 ? offset - remain : offset + (itemHeight - remain);
 
-    console.log({scroller});
 
     scroller.current._component.scrollTo({y: newPosition});
 
