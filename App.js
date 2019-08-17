@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useState } from "react";
-import { Animated, Text } from "react-native";
+import React, {useCallback, useRef, useState} from "react";
+import {Animated, Text} from "react-native";
 import PropTypes from "prop-types";
 import {
   Cover,
@@ -8,20 +8,20 @@ import {
   ScrollWrapper,
   WheelScroller
 } from "./styles/wheel";
-import { lockOnItem } from "./utils/functions";
+import {lockOnItem} from "./utils/functions";
 
 const App = ({
-  height,
-  width,
-  numOfDisplayedItems,
-  itemStyles,
-  textStyles,
-  borderWidth,
-  selected,
-  onSelect,
-  borderColor,
-  options
-}) => {
+               height,
+               width,
+               numOfDisplayedItems,
+               itemStyles,
+               textStyles,
+               borderWidth,
+               selected,
+               onSelect,
+               borderColor,
+               options
+             }) => {
   const doesIndexExist = options.length > selected && selected >= 0;
   selected = doesIndexExist ? selected : 0;
 
@@ -50,9 +50,9 @@ const App = ({
   const calculateDisplayedItemHeights = useCallback(
     (numOfDisplayedItems, itemHeight, distanceFromViewCenter) => {
       const arr = [];
-      const middleItem = Math.floor(numOfDisplayedItems / 2) - 1;
+      const middleItem = Math.floor(numOfDisplayedItems / 2);
 
-      for (let i = 1; i <= numOfDisplayedItems; i++) {
+      for (let i = 0; i < numOfDisplayedItems; i++) {
         arr.push(distanceFromViewCenter + (i - middleItem) * itemHeight);
       }
 
@@ -64,9 +64,9 @@ const App = ({
   const getDegreesByItemAmount = useCallback(numOfDisplayedItems => {
     const arr = [];
     let stepDegrees = 180 / numOfDisplayedItems;
-    const middleItem = Math.floor(numOfDisplayedItems / 2) - 1;
+    const middleItem = Math.floor(numOfDisplayedItems / 2);
 
-    for (let i = 1; i <= numOfDisplayedItems; i++) {
+    for (let i = 0; i < numOfDisplayedItems; i++) {
       arr.push(`${(i - middleItem) * stepDegrees}deg`);
     }
 
@@ -98,6 +98,23 @@ const App = ({
     []
   );
 
+  const returnTriangleSequence = (numOfItems) => {
+    const sequence = [];
+    const divider = Math.ceil(numOfItems / 2);
+    for (let i = 0; i < numOfItems; i++) {
+      if (i < divider) {
+        sequence.push(i);
+      } else {
+        sequence.push(numOfItems - i - 1);
+      }
+    }
+    let mappedSequence: *;
+    mappedSequence = sequence.map(item => Math.pow(numOfItems - item - divideEr, 5));
+    // console.log(sequence);
+    // console.log({mappedSequence});
+    return mappedSequence;
+  };
+
   const createList = useCallback((itemStyles, textStyles, animationValue) => {
     return [
       ...spaces(true),
@@ -123,12 +140,18 @@ const App = ({
                       inputRange,
                       outputRange: getDegreesByItemAmount(numOfDisplayedItems)
                     })
-                  }
+                  },
+                  // {
+                  //     translateY: animationValue.interpolate({
+                  //         inputRange,
+                  //         outputRange: returnTriangleSequence(numOfDisplayedItems)
+                  //     })
+                  // }
                 ],
-                opacity: animationValue.interpolate({
-                  inputRange: inputRange,
-                  outputRange: getOpacityByItemAmount(numOfDisplayedItems)
-                })
+                // opacity: animationValue.interpolate({
+                //     inputRange: inputRange,
+                //     outputRange: getOpacityByItemAmount(numOfDisplayedItems)
+                // })
               },
               itemStyles
             ]}
@@ -205,7 +228,7 @@ App.propTypes = {
 App.defaultProps = {
   height: 400,
   width: 80,
-  numOfDisplayedItems: 11,
+  numOfDisplayedItems: 5,
   itemStyles: {},
   textStyles: {},
   borderWidth: 2,
