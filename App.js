@@ -126,7 +126,7 @@ const App = ({
                   }
                 ],
                 opacity: animationValue.interpolate({
-                  inputRange: inputRange.map(el => el - 2 * itemHeight),
+                  inputRange: inputRange,
                   outputRange: getOpacityByItemAmount(numOfDisplayedItems)
                 })
               },
@@ -163,7 +163,7 @@ const App = ({
 
   //TODO: Make two covers with border top/bottom instead of one
 
-  console.log("redered");
+  // console.log("rendered");
 
   return (
     <ScrollWrapper height={height} width={width}>
