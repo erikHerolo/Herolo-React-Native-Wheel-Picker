@@ -4,6 +4,8 @@ import PropTypes from "prop-types";
 import {Item, ItemText, ScrollWrapper, WheelScroller} from "./styles/wheel";
 import {lockOnItem} from "./utils/functions";
 
+let renderCount = 0;
+
 const App = ({
                  height,
                  width,
@@ -96,6 +98,7 @@ const App = ({
         return arr;
     }, []);
 
+    const [selectedIndex, setSelectedIndex] = useState(selected);
 
     const createList = useCallback((itemStyles, textStyles, animationValue) => {
         return [
@@ -108,11 +111,13 @@ const App = ({
                     itemHeight,
                     distanceFromViewCenter
                 );
+                // const isSelected = Math.round(event.nativeEvent.contentOffset.y / itemHeight) + 1 === value;
+
                 return (
                     <View style={{height: itemHeight}}>
                         <Item
                             key={index}
-                                style={[
+                            style={[
                                 {
                                     transform: [
                                         {
@@ -138,37 +143,48 @@ const App = ({
                             itemHeight={itemHeight}
                             as={Animated.View}
                         >
-                            <ItemText style={textStyles}>{value}</ItemText>
+                            <ItemText
+                                as={Animated.Text}
+                                style={[{
+                                    transform: [
+                                        {
+                                            scale: animationValue.interpolate({
+                                                inputRange,
+                                                outputRange: [0.8, 0.9, 1, 0.9, 0.8]
+                                            })
+                                        },
+                                    ],
+                                    color: index === selectedIndex ? 'blue' : 'green'
+                                }, textStyles]}>{value}</ItemText>
                         </Item>
                     </View>
                 );
             }),
             ...spaces(false)
         ];
-    }, []);
+    }, [selectedIndex]);
 
     const initialLock = useCallback(
-        offset =>
+        offset =>{
             lockOnItem({
                 offset,
                 itemHeight,
                 scroller,
                 onSelect,
                 options
-            }),
+            });
+            setSelectedIndex(Math.round(offset / itemHeight))
+        },
         [options, onSelect, itemHeight]
     );
 
     const animatedValueScrollY = new Animated.Value(0);
 
-    // const onScroll = Animated.event([{nativeEvent: {contentOffset: {y: scrollerY}}}], {useNativeDriver: true});
-    // const onScroll = e => console.log({e});
-    const [scrollY, setScrollY] = useState(animatedValueScrollY);
-
     //TODO: Make two covers with border top/bottom instead of one
 
     // console.log("rendered");
-
+    renderCount += 1;
+    console.warn({renderCount});
     return (
         <ScrollWrapper height={height} width={width}>
             <WheelScroller
@@ -184,7 +200,7 @@ const App = ({
                 scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
                 onMomentumScrollEnd={event => {
-                    console.warn(Math.round(event.nativeEvent.contentOffset.y / itemHeight) + 1);
+                    // setSelectedIndex(Math.round(event.nativeEvent.contentOffset.y / itemHeight));
                     initialLock(event.nativeEvent.contentOffset.y)
                 }
                 }
