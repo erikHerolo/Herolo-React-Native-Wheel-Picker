@@ -18,6 +18,8 @@ export const Item = styled.View`
 `;
 
 export const ItemText = styled.Text`
+  font-family: 'Roboto';
+  font-size: 20px;
   color: black;
 `;
 
