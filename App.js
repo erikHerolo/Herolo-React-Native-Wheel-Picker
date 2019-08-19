@@ -164,7 +164,7 @@ const App = ({
                                         {
                                             scale: animationValue.interpolate({
                                                 inputRange,
-                                                outputRange: [0.8, 0.9, 1, 0.9, 0.8]
+                                                outputRange: [0.7, 0.9, 1.2, 0.9, 0.7]
                                             })
                                         },
                                     ],
@@ -236,7 +236,7 @@ const App = ({
                 <View style={{width: 100, height: height / 3.5, borderColor: selectedColor, borderTopWidth: 1, borderBottomWidth: 1}}/>
             </View>
             <WheelScroller
-                decelerationRate={0.9}
+                decelerationRate={0.95}
                 as={Animated.ScrollView}
                 onLayout={() => initialLock(selected * itemHeight)}
                 ref={scroller}
@@ -285,7 +285,7 @@ App.defaultProps = {
     selectedColor: 'red',
     onSelect: value => console.log("value: ", value),
     borderColor: "black",
-    options: Array(30)
+    options: Array(100)
         .fill("")
         .map((_, i) => i + 1)
 };
