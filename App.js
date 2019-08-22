@@ -20,16 +20,17 @@ const App = ({
              }) => {
     const doesIndexExist = options.length > selected && selected >= 0;
     selected = doesIndexExist ? selected : 0;
-    
+
     if ( !doesIndexExist ) {
         console.warn("given index is out of range");
     }
-    
+
     const scroller = useRef(null);
-    
+
     const itemHeight = height / numOfDisplayedItems;
     const middleItemIndex = Math.floor(numOfDisplayedItems / 2);
-    
+    const selectedArea = height / numOfDisplayedItems * 1.14;
+
     // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
     const spaces = isTop =>
         Array(numOfDisplayedItems / 2 - 0.5)
@@ -43,101 +44,101 @@ const App = ({
                     <Text>{ item }</Text>
                 </Item>
             ));
-    
+
     const calculateDisplayedItemHeights = useCallback(
         (numOfDisplayedItems, itemHeight, distanceFromViewCenter) => {
             const arr = [];
-            
+
             for (let i = 0; i < numOfDisplayedItems; i++) {
                 arr.push(distanceFromViewCenter + (i - middleItemIndex) * itemHeight);
             }
-            
+
             return arr;
         },
         []
     );
-    
+
     const getDegreesByItemAmount = useCallback(numOfDisplayedItems => {
         const arr = [];
         let stepDegrees = 180 / numOfDisplayedItems;
-        
+
         for (let i = 0; i < numOfDisplayedItems; i++) {
             arr.push(`${ (i - middleItemIndex) * stepDegrees }deg`);
         }
         // console.log('degrees arr', arr);
         return arr;
     }, []);
-    
+
     const getYOffsetByItemAmount = useCallback(numOfDisplayedItems => {
         const arr = [];
         let stepDegrees = numOfDisplayedItems / 1.5;
-        
+
         for (let i = 0; i < numOfDisplayedItems; i++) {
             arr.push((i - middleItemIndex) * stepDegrees / 10 * -itemHeight);
         }
         return arr;
     }, []);
-    
+
     const getOpacityByItemAmount = useCallback(numOfDisplayedItems => {
         const arr = [];
         const middle = numOfDisplayedItems / 2;
         const stepOpacity = 1 / middleItemIndex;
-        
+
         for (let i = 0; i < numOfDisplayedItems; i++) {
             arr.push(1 - Math.abs(stepOpacity * i - 1));
         }
         arr[0] = 0.1;
         arr[arr.length - 1] = 0.1;
-        
+
         return arr;
     }, []);
-    
+
     const getTextOpacity = useCallback(numOfDisplayedItems => {
         const middle = Math.floor(numOfDisplayedItems / 2);
-        const arr = [ ...new Array(numOfDisplayedItems).fill(1) ];
+        const arr = [ ...new Array(numOfDisplayedItems).fill(0.5) ];
         arr[middle] = 0;
-        console.log({ arr });
         return arr;
     });
-    
+
     const getSelectedColor = useCallback(numOfDisplayedItems => {
         const middle = Math.floor(numOfDisplayedItems / 2);
         const arr = [ ...new Array(numOfDisplayedItems).fill(0) ];
         arr[middle] = 1;
         return arr;
     });
-    
+
     const getScaleArr = useCallback((numOfDisplayedItems, jumpsScale = 1)=> {
         const middle = Math.floor(numOfDisplayedItems / 2);
         const arr = [ ...new Array(numOfDisplayedItems).fill(0) ];
         const jumps = jumpsScale ? 1 / numOfDisplayedItems * jumpsScale : 0;
-        
+
         const m = jumps;
         const b = -middle * m;
         const selectedSize = 1;
-        
+
         const y = arr.map((_,x) => selectedSize - Math.abs(m * x + b));
             console.log({jumps, scaleArr: y});
+        return [0.8,0.85,1,0.85,0.8];
         return y
     });
-    
-    
+
+
     const createList = useCallback((itemStyles, selectedColor, animationValue) => {
         return [
             ...spaces(true),
             ...options.map((value, index) => {
                 const distanceFromViewCenter = Math.abs(index * itemHeight);
-                
+
                 const inputRange = calculateDisplayedItemHeights(
                     numOfDisplayedItems,
                     itemHeight,
                     distanceFromViewCenter
                 );
-                
-                const tightRange = height / 10;
+
+                const tightRange = selectedArea / 2;
                 const tightInputRange = [ inputRange[middleItemIndex] - tightRange, inputRange[middleItemIndex], inputRange[middleItemIndex] + tightRange ];
                 console.log({ tightInputRange });
-                
+
                 return (
                     <View style={ { height: itemHeight } }>
                         <Item
@@ -190,7 +191,7 @@ const App = ({
                                                 })
                                             },
                                         ],
-                              
+
                                     }, { color: '#000000' } ] }>{ value }</ItemText>
                             </Animated.View>
                             <Animated.View
@@ -232,7 +233,7 @@ const App = ({
             ...spaces(false)
         ];
     }, []);
-    
+
     const initialLock = useCallback(
         offset => {
             lockOnItem({
@@ -245,12 +246,12 @@ const App = ({
         },
         [ options, onSelect, itemHeight ]
     );
-    
-    
+
+
     const animatedValueScrollY = new Animated.Value(0);
-    
+
     //TODO: Make two covers with border top/bottom instead of one
-    
+
     // console.log("rendered");
     renderCount += 1;
     console.warn({ renderCount });
@@ -266,7 +267,7 @@ const App = ({
             } }>
                 <View style={ {
                     width: 100,
-                    height: height / numOfDisplayedItems * 1.14,
+                    height: selectedArea,
                     borderColor: selectedColor,
                     borderTopWidth: 1,
                     borderBottomWidth: 1
