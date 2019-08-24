@@ -1,8 +1,10 @@
-import React, { useCallback, useRef } from "react";
-import { Animated, Text, View } from "react-native";
+import React, {useCallback, useRef} from "react";
+import {Animated, Text, View} from "react-native";
 import PropTypes from "prop-types";
-import { Item, ItemText, ScrollWrapper, WheelScroller } from "./styles/wheel";
-import { lockOnItem } from "./utils/functions";
+import {Item, ScrollWrapper, WheelScroller} from "./src/styles/wheel";
+import WheelItems from "./src/WheelItems";
+import {lockOnItem} from "./src/utils/functions";
+
 
 let renderCount = 0;
 
@@ -21,7 +23,7 @@ const App = ({
     const doesIndexExist = options.length > selected && selected >= 0;
     selected = doesIndexExist ? selected : 0;
 
-    if ( !doesIndexExist ) {
+    if (!doesIndexExist) {
         console.warn("given index is out of range");
     }
 
@@ -37,202 +39,13 @@ const App = ({
             .fill(" ")
             .map((item, index) => (
                 <Item
-                    key={ isTop ? `top-space${ index }` : `bottom-space${ index }` }
-                    style={ itemStyles }
-                    itemHeight={ itemHeight }
+                    key={isTop ? `top-space${index}` : `bottom-space${index}`}
+                    style={itemStyles}
+                    itemHeight={itemHeight}
                 >
-                    <Text>{ item }</Text>
+                    <Text>{item}</Text>
                 </Item>
             ));
-
-    const calculateDisplayedItemHeights = useCallback(
-        (numOfDisplayedItems, itemHeight, distanceFromViewCenter) => {
-            const arr = [];
-
-            for (let i = 0; i < numOfDisplayedItems; i++) {
-                arr.push(distanceFromViewCenter + (i - middleItemIndex) * itemHeight);
-            }
-
-            return arr;
-        },
-        []
-    );
-
-    const getDegreesByItemAmount = useCallback(numOfDisplayedItems => {
-        const arr = [];
-        let stepDegrees = 180 / numOfDisplayedItems;
-
-        for (let i = 0; i < numOfDisplayedItems; i++) {
-            arr.push(`${ (i - middleItemIndex) * stepDegrees }deg`);
-        }
-        // console.log('degrees arr', arr);
-        return arr;
-    }, []);
-
-    const getYOffsetByItemAmount = useCallback(numOfDisplayedItems => {
-        const arr = [];
-        let stepDegrees = numOfDisplayedItems / 1.5;
-
-        for (let i = 0; i < numOfDisplayedItems; i++) {
-            arr.push((i - middleItemIndex) * stepDegrees / 10 * -itemHeight);
-        }
-        return arr;
-    }, []);
-
-    const getOpacityByItemAmount = useCallback(numOfDisplayedItems => {
-        const arr = [];
-        const middle = numOfDisplayedItems / 2;
-        const stepOpacity = 1 / middleItemIndex;
-
-        for (let i = 0; i < numOfDisplayedItems; i++) {
-            arr.push(1 - Math.abs(stepOpacity * i - 1));
-        }
-        arr[0] = 0.1;
-        arr[arr.length - 1] = 0.1;
-
-        return arr;
-    }, []);
-
-    const getTextOpacity = useCallback(numOfDisplayedItems => {
-        const middle = Math.floor(numOfDisplayedItems / 2);
-        const arr = [ ...new Array(numOfDisplayedItems).fill(0.5) ];
-        arr[middle] = 0;
-        return arr;
-    });
-
-    const getSelectedColor = useCallback(numOfDisplayedItems => {
-        const middle = Math.floor(numOfDisplayedItems / 2);
-        const arr = [ ...new Array(numOfDisplayedItems).fill(0) ];
-        arr[middle] = 1;
-        return arr;
-    });
-
-    const getScaleArr = useCallback((numOfDisplayedItems, jumpsScale = 1)=> {
-        const middle = Math.floor(numOfDisplayedItems / 2);
-        const arr = [ ...new Array(numOfDisplayedItems).fill(0) ];
-        const jumps = jumpsScale ? 1 / numOfDisplayedItems * jumpsScale : 0;
-
-        const m = jumps;
-        const b = -middle * m;
-        const selectedSize = 1;
-
-        const y = arr.map((_,x) => selectedSize - Math.abs(m * x + b));
-            console.log({jumps, scaleArr: y});
-        return [0.8,0.85,1,0.85,0.8];
-        return y
-    });
-
-
-    const createList = useCallback((itemStyles, selectedColor, animationValue) => {
-        return [
-            ...spaces(true),
-            ...options.map((value, index) => {
-                const distanceFromViewCenter = Math.abs(index * itemHeight);
-
-                const inputRange = calculateDisplayedItemHeights(
-                    numOfDisplayedItems,
-                    itemHeight,
-                    distanceFromViewCenter
-                );
-
-                const tightRange = selectedArea / 2;
-                const tightInputRange = [ inputRange[middleItemIndex] - tightRange, inputRange[middleItemIndex], inputRange[middleItemIndex] + tightRange ];
-                console.log({ tightInputRange });
-
-                return (
-                    <View style={ { height: itemHeight } }>
-                        <Item
-                            key={ index }
-                            style={ [
-                                {
-                                    transform: [
-                                        {
-                                            rotateX: animationValue.interpolate({
-                                                inputRange,
-                                                outputRange: getDegreesByItemAmount(numOfDisplayedItems)
-                                            })
-                                        },
-                                        {
-                                            translateY: animationValue.interpolate({
-                                                inputRange,
-                                                outputRange: getYOffsetByItemAmount(numOfDisplayedItems)
-                                            })
-                                        }
-                                    ],
-                                    opacity: animationValue.interpolate({
-                                        inputRange: inputRange,
-                                        outputRange: getOpacityByItemAmount(numOfDisplayedItems)
-                                    }),
-                                },
-                                itemStyles
-                            ] }
-                            itemHeight={ itemHeight }
-                            as={ Animated.View }
-                        >
-                            <Animated.View
-                                style={
-                                    {
-                                        opacity: animationValue.interpolate({
-                                            inputRange: tightInputRange,
-                                            outputRange: getTextOpacity(tightInputRange.length)
-                                        })
-                                    }
-                                }
-                            >
-                                <ItemText
-                                    key={ `${ value }` }
-                                    as={ Animated.Text }
-                                    style={ [ {
-                                        transform: [
-                                            {
-                                                scale: animationValue.interpolate({
-                                                    inputRange,
-                                                    outputRange: getScaleArr(numOfDisplayedItems)
-                                                })
-                                            },
-                                        ],
-
-                                    }, { color: '#000000' } ] }>{ value }</ItemText>
-                            </Animated.View>
-                            <Animated.View
-                                style={
-                                    {
-                                        position: 'absolute',
-                                        opacity: animationValue.interpolate({
-                                            inputRange: tightInputRange,
-                                            outputRange: getSelectedColor(tightInputRange.length)
-                                        })
-                                    }
-                                }
-                            >
-                            <ItemText
-                                key={ `${ value }-selected` }
-                                as={ Animated.Text }
-                                style={ [ {
-                                    transform: [
-                                        {
-                                            scale: animationValue.interpolate({
-                                                inputRange,
-                                                outputRange: getScaleArr(numOfDisplayedItems)
-                                            })
-                                        },
-                                    ],
-                                }, {
-                                    width: 100,
-                                    padding: 10,
-                                    textAlign: 'center',
-                                    color: selectedColor,
-                                    borderColor: selectedColor,
-                                    fontWeight: 'bold'
-                                } ] }>{ value }</ItemText>
-                            </Animated.View>
-                        </Item>
-                    </View>
-                );
-            }),
-            ...spaces(false)
-        ];
-    }, []);
 
     const initialLock = useCallback(
         offset => {
@@ -244,7 +57,7 @@ const App = ({
                 options
             });
         },
-        [ options, onSelect, itemHeight ]
+        [options, onSelect, itemHeight]
     );
 
 
@@ -254,46 +67,52 @@ const App = ({
 
     // console.log("rendered");
     renderCount += 1;
-    console.warn({ renderCount });
+    console.warn({renderCount});
     return (
-        <ScrollWrapper height={ height } width={ width }>
-            <View style={ {
-                position: 'absolute',
-                width: 100,
-                height: height,
-                alignSelf: 'center',
-                alignItems: 'center',
-                justifyContent: 'center'
-            } }>
-                <View style={ {
+        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+            <ScrollWrapper height={height} width={width}>
+                <View style={{
+                    position: 'absolute',
                     width: 100,
-                    height: selectedArea,
-                    borderColor: selectedColor,
-                    borderTopWidth: 1,
-                    borderBottomWidth: 1
-                } }/>
-            </View>
-            <WheelScroller
-                decelerationRate={ 0.95 }
-                as={ Animated.ScrollView }
-                onLayout={ () => initialLock(selected * itemHeight) }
-                ref={ scroller }
-                onScroll={ Animated.event(
-                    [ { nativeEvent: { contentOffset: { y: animatedValueScrollY } } } ],
-                    {
-                        useNativeDriver: true
+                    height: height,
+                    alignSelf: 'center',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <View style={{
+                        width: 100,
+                        height: selectedArea,
+                        borderColor: selectedColor,
+                        borderTopWidth: 1,
+                        borderBottomWidth: 1
+                    }}/>
+                </View>
+                <WheelScroller
+                    decelerationRate={0.95}
+                    as={Animated.ScrollView}
+                    onLayout={() => initialLock(selected * itemHeight)}
+                    ref={scroller}
+                    onScroll={Animated.event(
+                        [{nativeEvent: {contentOffset: {y: animatedValueScrollY}}}],
+                        {
+                            useNativeDriver: true
+                        }
+                    )}
+                    scrollEventThrottle={16}
+                    showsVerticalScrollIndicator={false}
+                    onMomentumScrollEnd={event => {
+                        initialLock(event.nativeEvent.contentOffset.y)
                     }
-                ) }
-                scrollEventThrottle={ 16 }
-                showsVerticalScrollIndicator={ false }
-                onMomentumScrollEnd={ event => {
-                    initialLock(event.nativeEvent.contentOffset.y)
-                }
-                }
-            >
-                { createList(itemStyles, selectedColor, animatedValueScrollY) }
-            </WheelScroller>
-        </ScrollWrapper>
+                    }
+                >
+                    <WheelItems
+                        options={options} itemStyles={itemStyles} selectedColor={selectedColor}
+                        animationValue={animatedValueScrollY} itemHeight={itemHeight}
+                        numOfDisplayedItems={numOfDisplayedItems} selectedArea={selectedArea}
+                    />
+                </WheelScroller>
+            </ScrollWrapper>
+        </View>
     );
 };
 

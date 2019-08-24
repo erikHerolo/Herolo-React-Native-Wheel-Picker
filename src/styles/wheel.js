@@ -5,6 +5,8 @@ export const ScrollWrapper = styled.View`
   overflow: hidden;
   height: ${props => props.height}px;
   width: ${props => props.width}px;
+  background-color: blanchedalmond;
+  border-radius: ${props => props.width / 4}px;
   justify-content: space-between;
   align-items: center;
   margin: 50px;

@@ -17,3 +17,14 @@ export const lockOnItem = ({
 
     onSelect(options[selectedItem]);
 };
+
+export const calculateDisplayedItemHeights =
+    (numOfDisplayedItems, itemHeight, distanceFromViewCenter) => {
+        const middleItemIndex = Math.floor(numOfDisplayedItems / 2);
+        const arr = [];
+        for (let i = 0; i < numOfDisplayedItems; i++) {
+            arr.push(distanceFromViewCenter + (i - middleItemIndex) * itemHeight);
+        }
+
+        return arr;
+    };
