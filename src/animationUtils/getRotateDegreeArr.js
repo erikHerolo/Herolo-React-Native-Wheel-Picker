@@ -1,7 +1,7 @@
 const getRotateDegreeArr = numOfDisplayedItems => {
     const middleItemIndex = Math.floor(numOfDisplayedItems / 2);
     const arr = [];
-    let stepDegrees = 180 / numOfDisplayedItems;
+    let stepDegrees = 360 / (numOfDisplayedItems * 2);
 
     for (let i = 0; i < numOfDisplayedItems; i++) {
         arr.push(`${(i - middleItemIndex) * stepDegrees}deg`);
@@ -9,3 +9,4 @@ const getRotateDegreeArr = numOfDisplayedItems => {
     // console.log('degrees arr', arr);
     return arr;
 };
+export default getRotateDegreeArr;

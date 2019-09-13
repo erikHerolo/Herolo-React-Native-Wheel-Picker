@@ -18,7 +18,8 @@ const App = ({
                  selected,
                  onSelect,
                  borderColor,
-                 options
+                 options,
+                 selectedItemStyle
              }) => {
     const doesIndexExist = options.length > selected && selected >= 0;
     selected = doesIndexExist ? selected : 0;
@@ -106,6 +107,7 @@ const App = ({
                     }
                 >
                     <WheelItems
+                        itemStyle={selectedItemStyle}
                         options={options} itemStyles={itemStyles} selectedColor={selectedColor}
                         animationValue={animatedValueScrollY} itemHeight={itemHeight}
                         numOfDisplayedItems={numOfDisplayedItems} selectedArea={selectedArea}
@@ -126,7 +128,8 @@ App.propTypes = {
     selectedColor: PropTypes.string,
     onSelect: PropTypes.func.isRequired,
     borderColor: PropTypes.string,
-    options: PropTypes.array.isRequired
+    options: PropTypes.array.isRequired,
+    selectedItemStyle: PropTypes.object
 };
 
 App.defaultProps = {
@@ -140,6 +143,7 @@ App.defaultProps = {
     borderWidth: 2,
     selected: 3,
     selectedColor: 'red',
+    selectedItemStyle: {backgroundColor: 'yellow'},
     onSelect: value => console.log("value: ", value),
     borderColor: "black",
     options: Array(100)
