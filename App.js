@@ -31,8 +31,9 @@ const App = ({
     const scroller = useRef(null);
 
     const itemHeight = height / numOfDisplayedItems;
+    const t = 2 * itemHeight * (numOfDisplayedItems / 2) * Math.sin(Math.PI / (2 * numOfDisplayedItems));
     const middleItemIndex = Math.floor(numOfDisplayedItems / 2);
-    const selectedArea = height / numOfDisplayedItems * 1.14;
+    const selectedArea = t;
 
     // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
     const spaces = isTop =>
@@ -139,11 +140,11 @@ App.defaultProps = {
     chosenItemStyle: {
         color: 'red'
     },
-    itemStyles: {},
+    itemStyles: { },
     borderWidth: 2,
     selected: 3,
     selectedColor: 'red',
-    selectedItemStyle: {backgroundColor: 'yellow'},
+    selectedItemStyle: {},
     onSelect: value => console.log("value: ", value),
     borderColor: "black",
     options: Array(100)

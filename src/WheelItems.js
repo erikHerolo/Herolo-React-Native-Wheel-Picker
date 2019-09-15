@@ -1,68 +1,87 @@
-import React, { useCallback } from "react";
-import { Animated, Text, View } from "react-native";
-import { Item, ItemText } from "./styles/wheel";
+import React, {useCallback} from "react";
+import {Animated, Text, View} from "react-native";
+import {Item, ItemText} from "./styles/wheel";
 import animationUtils from "./animationUtils";
-import { calculateDisplayedItemHeights } from "./utils/functions";
+import {calculateDisplayedItemHeights} from "./utils/functions";
 
-const WheelItems = ({ options, itemStyle, selectedColor, animationValue, itemHeight, numOfDisplayedItems, selectedArea }) => {
+const WheelItems = ({options, itemStyle, selectedColor, animationValue, itemHeight, numOfDisplayedItems, selectedArea}) => {
     const middleItemIndex = Math.floor(numOfDisplayedItems / 2);
-    
+
     const getDegreesByItemAmount = useCallback(numOfDisplayedItems => {
         const arr = [];
         let stepDegrees = 180 / numOfDisplayedItems;
-        
+
         for (let i = 0; i < numOfDisplayedItems; i++) {
-            arr.push(`${ (i - middleItemIndex) * stepDegrees }deg`);
+            arr.push(`${(i - middleItemIndex) * stepDegrees}deg`);
         }
         // console.log('degrees arr', arr);
         return arr;
     }, []);
-    
+
     const getYOffsetByItemAmount = useCallback(numOfDisplayedItems => {
         const arr = [];
         let stepDegrees = numOfDisplayedItems / 1.5;
-        
+
+        const translateIndexToNum = (index) => {
+            let resultNum = 0;
+            for (let i = 1; i <= index; i++) {
+                resultNum += itemHeight * 0.625 / i;
+            }
+            return resultNum;
+        };
+
         for (let i = 0; i < numOfDisplayedItems; i++) {
-            arr.push((i - middleItemIndex) * stepDegrees / 10 * -itemHeight);
+            arr.push(i - middleItemIndex);
         }
-        // return arr;
-        const mid = 25;
-        const end = 50;
-        return [end, mid, 0, -mid, -end];
+
+        const resultArr = [];
+        for (let i of arr) {
+            resultArr.push(i >= 0 ? -translateIndexToNum(Math.abs(i)) : translateIndexToNum(Math.abs(i)));
+        }
+
+        console.warn(resultArr.join(', '));
+        return resultArr;
+        // return [37.5, 25, 0, -25, -37.5];
+        // 2, 1, 0, -1, -2
+        // const mid = itemHeight * 0.625;
+        // const end = mid + mid / 2;
+        // return [end, mid, 0, -mid, -end];
     }, []);
-    
+
+    const t = 2 * itemHeight * (numOfDisplayedItems / 2) * Math.sin(Math.PI / (2 * numOfDisplayedItems));
+
     const spaces = useCallback(isTop =>
         Array(numOfDisplayedItems / 2 - 0.5)
             .fill(" ")
             .map((item, index) => (
                 <Item
-                    key={ isTop ? `top-space${ index }` : `bottom-space${ index }` }
-                    style={ itemStyle }
-                    itemHeight={ itemHeight }
+                    key={isTop ? `top-space${index}` : `bottom-space${index}`}
+                    style={itemStyle}
+                    itemHeight={itemHeight}
                 >
-                    <Text>{ item }</Text>
+                    <Text>{item}</Text>
                 </Item>
             )));
     return [
         ...spaces(true),
         ...options.map((value, index) => {
             const distanceFromViewCenter = Math.abs(index * itemHeight);
-            
+
             const inputRange = calculateDisplayedItemHeights(
                 numOfDisplayedItems,
                 itemHeight,
                 distanceFromViewCenter
             );
-            
+
             const tightRange = selectedArea / 2;
-            const tightInputRange = [ inputRange[middleItemIndex] - tightRange, inputRange[middleItemIndex], inputRange[middleItemIndex] + tightRange ];
-            console.log({ tightInputRange });
-            
+            const tightInputRange = [inputRange[middleItemIndex] - tightRange, inputRange[middleItemIndex], inputRange[middleItemIndex] + tightRange];
+            console.log({tightInputRange});
+
             return (
-                <View style={ { height: itemHeight } }>
+                <View style={{height: itemHeight}}>
                     <Item
-                        key={ index }
-                        style={ [
+                        key={index}
+                        style={[
                             {
                                 transform: [
                                     {
@@ -78,10 +97,10 @@ const WheelItems = ({ options, itemStyle, selectedColor, animationValue, itemHei
                                         })
                                     },
                                     {
-                                        scale: animationValue.interpolate({
-                                            inputRange,
-                                            outputRange: animationUtils.getScaleArr(numOfDisplayedItems)
-                                        })
+                                        perspective: 1000
+                                    },
+                                    {
+                                        scale: t / itemHeight
                                     },
                                 ],
                                 opacity: animationValue.interpolate({
@@ -90,29 +109,45 @@ const WheelItems = ({ options, itemStyle, selectedColor, animationValue, itemHei
                                 }),
                             },
                             itemStyle
-                        ] }
-                        itemHeight={ itemHeight }
-                        as={ Animated.View }
+                        ]}
+                        itemHeight={itemHeight}
+                        as={Animated.View}
                     >
                         <Animated.View
                             style={
                                 {
+                                    transform: [
+                                        {
+                                            scale: animationValue.interpolate({
+                                                inputRange: tightInputRange,
+                                                outputRange: animationUtils.getScaleArr(tightInputRange.length)
+                                            })
+                                        },
+                                    ],
                                     opacity: animationValue.interpolate({
                                         inputRange: tightInputRange,
                                         outputRange: animationUtils.getNotSelectedOpacityArr(tightInputRange.length)
-                                    })
+                                    }),
                                 }
                             }
                         >
                             <ItemText
-                                key={ `${ value }` }
-                                as={ Animated.Text }
-                                style={ { color: '#000000' } }>{ value }</ItemText>
+                                key={`${value}`}
+                                as={Animated.Text}
+                                style={{color: '#000000'}}>{value}</ItemText>
                         </Animated.View>
                         <Animated.View
                             style={
                                 {
                                     position: 'absolute',
+                                    transform: [
+                                        {
+                                            scale: animationValue.interpolate({
+                                                inputRange: tightInputRange,
+                                                outputRange: animationUtils.getScaleArr(tightInputRange.length)
+                                            })
+                                        },
+                                    ],
                                     opacity: animationValue.interpolate({
                                         inputRange: tightInputRange,
                                         outputRange: animationUtils.getSelectedOpacityArr(tightInputRange.length)
@@ -121,16 +156,16 @@ const WheelItems = ({ options, itemStyle, selectedColor, animationValue, itemHei
                             }
                         >
                             <ItemText
-                                key={ `${ value }-selected` }
-                                as={ Animated.Text }
-                                style={ {
+                                key={`${value}-selected`}
+                                as={Animated.Text}
+                                style={{
                                     width: 100,
                                     padding: 10,
                                     textAlign: 'center',
                                     color: selectedColor,
                                     borderColor: selectedColor,
                                     fontWeight: 'bold'
-                                } }>{ value }</ItemText>
+                                }}>{value}</ItemText>
                         </Animated.View>
                     </Item>
                 </View>

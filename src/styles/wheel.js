@@ -5,7 +5,6 @@ export const ScrollWrapper = styled.View`
   overflow: hidden;
   height: ${props => props.height}px;
   width: ${props => props.width}px;
-  background-color: white;
   justify-content: space-between;
   align-items: center;
   margin: 50px;
@@ -20,7 +19,7 @@ export const Item = styled.View`
 
 export const ItemText = styled.Text`
   font-family: 'Roboto';
-  font-size: 20px;
+  font-size: 14px;
   color: black;
 `;
 

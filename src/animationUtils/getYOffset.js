@@ -4,21 +4,16 @@ const getYOffset = (numOfDisplayedItems, itemHeight) => {
     const middleItemIndex = Math.floor(numOfDisplayedItems / 2);
     const arr = [];
     let stepDegrees = numOfDisplayedItems / 5;
-    
+
     for (let i = 0; i < numOfDisplayedItems; i++) {
         arr.push((i - middleItemIndex) * stepDegrees / 10 * -itemHeight);
     }
-    console.warn(rotateDegrees[0]);
-    console.warn(rotateDegrees[1]);
-    console.warn(rotateDegrees[2]);
-    console.warn(rotateDegrees[3]);
-    console.warn(rotateDegrees[4]);
     console.log({ arr });
     return arr;
     const far = 150;
     const middle = 75;
     console.log({ far, middle});
-    
+
     return [
         far,
         middle,
