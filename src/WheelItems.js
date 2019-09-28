@@ -7,20 +7,8 @@ import {calculateDisplayedItemHeights} from "./utils/functions";
 const WheelItems = ({options, itemStyle, selectedColor, animationValue, itemHeight, numOfDisplayedItems, selectedArea}) => {
     const middleItemIndex = Math.floor(numOfDisplayedItems / 2);
 
-    const getDegreesByItemAmount = useCallback(numOfDisplayedItems => {
-        const arr = [];
-        let stepDegrees = 180 / numOfDisplayedItems;
-
-        for (let i = 0; i < numOfDisplayedItems; i++) {
-            arr.push(`${(i - middleItemIndex) * stepDegrees}deg`);
-        }
-        // console.log('degrees arr', arr);
-        return arr;
-    }, []);
-
     const getYOffsetByItemAmount = useCallback(numOfDisplayedItems => {
         const arr = [];
-        let stepDegrees = numOfDisplayedItems / 1.5;
 
         const translateIndexToNum = (index) => {
             let resultNum = 0;
@@ -39,15 +27,16 @@ const WheelItems = ({options, itemStyle, selectedColor, animationValue, itemHeig
             resultArr.push(i >= 0 ? -translateIndexToNum(Math.abs(i)) : translateIndexToNum(Math.abs(i)));
         }
 
-        console.warn(resultArr.join(', '));
         return resultArr;
-        // return [37.5, 25, 0, -25, -37.5];
-        // 2, 1, 0, -1, -2
-        // const mid = itemHeight * 0.625;
-        // const end = mid + mid / 2;
-        // return [end, mid, 0, -mid, -end];
     }, []);
+    
+    /*
+    The variable name 't' represents the length of an edge in a tangential polygon.
+    For further reading, and the explanation of what is behind the following calculation:
 
+    https://en.wikipedia.org/wiki/Incircle_and_excircles_of_a_triangle
+    https://en.wikipedia.org/wiki/Tangential_polygon
+    */
     const t = 2 * itemHeight * (numOfDisplayedItems / 2) * Math.sin(Math.PI / (2 * numOfDisplayedItems));
 
     const spaces = useCallback(isTop =>
