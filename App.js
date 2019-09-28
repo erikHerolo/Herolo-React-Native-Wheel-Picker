@@ -18,7 +18,9 @@ const App = (props) => {
         onSelect,
         borderColor,
         options,
-        selectedItemStyle
+        selectedItemStyle,
+        decelerationRate,
+        scrollEventThrottle
     } = props;
 
     const doesIndexExist = options.length > selected && selected >= 0;
@@ -81,12 +83,12 @@ const App = (props) => {
                     <SelectedOptionCover selectedArea={selectedArea} selectedColor={selectedColor} />
                 </WheelCover>
                 <WheelScroller
-                    decelerationRate={0.95}
+                    decelerationRate={decelerationRate}
                     as={Animated.ScrollView}
                     onLayout={() => initialLock(selected * itemHeight)}
                     ref={scroller}
                     onScroll={onScroll}
-                    scrollEventThrottle={16}
+                    scrollEventThrottle={scrollEventThrottle}
                     showsVerticalScrollIndicator={false}
                     onMomentumScrollEnd={onMomentumScrollEnd}
                 >
@@ -136,7 +138,9 @@ App.propTypes = {
     onSelect: PropTypes.func.isRequired,
     borderColor: PropTypes.string,
     options: PropTypes.array.isRequired,
-    selectedItemStyle: PropTypes.object
+    selectedItemStyle: PropTypes.object,
+    decelerationRate: PropTypes.number,
+    scrollEventThrottle: PropTypes.number
 };
 
 App.defaultProps = {
@@ -146,6 +150,8 @@ App.defaultProps = {
     chosenItemStyle: {
         color: 'red'
     },
+    decelerationRate: 0.95,
+    scrollEventThrottle: 16,
     itemStyles: { },
     borderWidth: 2,
     selected: 3,
