@@ -8,11 +8,10 @@ const getYOffset = (numOfDisplayedItems, itemHeight) => {
     for (let i = 0; i < numOfDisplayedItems; i++) {
         arr.push((i - middleItemIndex) * stepDegrees / 10 * -itemHeight);
     }
-    console.log({ arr });
+
     return arr;
     const far = 150;
     const middle = 75;
-    console.log({ far, middle});
 
     return [
         far,

@@ -64,12 +64,10 @@ const WheelItems = ({options, itemStyle, selectedColor, animationValue, itemHeig
 
             const tightRange = selectedArea / 2;
             const tightInputRange = [inputRange[middleItemIndex] - tightRange, inputRange[middleItemIndex], inputRange[middleItemIndex] + tightRange];
-            console.log({tightInputRange});
 
             return (
-                <View style={{height: itemHeight}}>
+                <View key={`item_${index}`} style={{height: itemHeight}}>
                     <Item
-                        key={index}
                         style={[
                             {
                                 transform: [

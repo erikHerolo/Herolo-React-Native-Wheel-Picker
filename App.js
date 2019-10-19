@@ -157,7 +157,7 @@ App.defaultProps = {
     selected: 3,
     selectedColor: 'red',
     selectedItemStyle: {},
-    onSelect: value => console.log("value: ", value),
+    onSelect: value => {},
     borderColor: "black",
     options: Array(100)
     .fill("")
