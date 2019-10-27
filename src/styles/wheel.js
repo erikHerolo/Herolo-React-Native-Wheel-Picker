@@ -23,7 +23,7 @@ export const ItemText = styled.Text`
   color: black;
 `;
 
-export const WheelScroller = styled.ScrollView`
+export const WheelScroller = styled.FlatList`
   width: 100%;
 `;
 
