@@ -1,7 +1,6 @@
 import React, {useCallback, useRef} from "react";
 import {Animated, Text, View} from "react-native";
 import PropTypes from "prop-types";
-import styled from 'styled-components';
 import {Item, ScrollWrapper, WheelScroller} from "./src/styles/wheel";
 import WheelItems from "./src/WheelItems";
 import {lockOnItem} from "./src/utils/functions";
@@ -27,7 +26,7 @@ const App = (props) => {
     selected = doesIndexExist ? selected : 0;
 
     if (!doesIndexExist) {
-        console.warn("Given index is out of range");
+        console.warn('[Wheelpicker] Given index is out of range');
     }
 
     const scroller = useRef(null);
@@ -77,55 +76,27 @@ const App = (props) => {
     //TODO: Make two covers with border top/bottom instead of one
 
     return (
-        <ExampleContainer>
-            <ScrollWrapper height={height} width={width}>
-                <WheelCover height={height}>
-                    <SelectedOptionCover selectedArea={selectedArea} selectedColor={selectedColor} />
-                </WheelCover>
-                <WheelScroller
-                    decelerationRate={decelerationRate}
-                    as={Animated.ScrollView}
-                    onLayout={() => initialLock(selected * itemHeight)}
-                    ref={scroller}
-                    onScroll={onScroll}
-                    scrollEventThrottle={scrollEventThrottle}
-                    showsVerticalScrollIndicator={false}
-                    onMomentumScrollEnd={onMomentumScrollEnd}
-                >
-                    <WheelItems
-                        itemStyle={selectedItemStyle}
-                        options={options} itemStyles={itemStyles} selectedColor={selectedColor}
-                        animationValue={animatedValueScrollY} itemHeight={itemHeight}
-                        numOfDisplayedItems={numOfDisplayedItems} selectedArea={selectedArea}
-                    />
-                </WheelScroller>
-            </ScrollWrapper>
-        </ExampleContainer>
+        <ScrollWrapper height={height} width={width}>
+            <WheelScroller
+                decelerationRate={decelerationRate}
+                as={Animated.ScrollView}
+                onLayout={() => initialLock(selected * itemHeight)}
+                ref={scroller}
+                onScroll={onScroll}
+                scrollEventThrottle={scrollEventThrottle}
+                showsVerticalScrollIndicator={false}
+                onMomentumScrollEnd={onMomentumScrollEnd}
+            >
+                <WheelItems
+                    itemStyle={selectedItemStyle}
+                    options={options} itemStyles={itemStyles} selectedColor={selectedColor}
+                    animationValue={animatedValueScrollY} itemHeight={itemHeight}
+                    numOfDisplayedItems={numOfDisplayedItems} selectedArea={selectedArea}
+                />
+            </WheelScroller>
+        </ScrollWrapper>
     );
 };
-
-const ExampleContainer = styled.View`
-    flex: 1;
-    align-items: center;
-    justify-content: center;
-`;
-
-const WheelCover = styled.View`
-    position: absolute;
-    width: 100;
-    height: ${props => props.height};
-    align-self: center;
-    align-items: center;
-    justify-content: center;
-`;
-
-const SelectedOptionCover = styled.View`
-    width: 100;
-    height: ${props => props.selectedArea};
-    border-color: ${props => props.selectedColor || 'white'};
-    border-top-width: 1;
-    border-bottom-width: 1;
-`;
 
 App.propTypes = {
     height: PropTypes.number,
