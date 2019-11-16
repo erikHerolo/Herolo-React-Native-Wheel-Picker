@@ -1,16 +1,18 @@
 {
-  "name": "wheel",
+  "name": "@herolo/rn-wheelpicker-test",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
     "test": "jest"
   },
   "dependencies": {
     "prop-types": "^15.7.2",
-    "react": "16.8.3",
-    "react-native": "0.59.9",
     "styled-components": "^4.3.1"
+  },
+  "peerDependencies": {
+    "react": "16.8.3",
+    "react-native": "0.59.9"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
