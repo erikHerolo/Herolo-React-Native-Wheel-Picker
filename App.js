@@ -1,5 +1,6 @@
 import React, {useCallback, useRef} from "react";
 import {Animated, Text, View} from "react-native";
+import styled from 'styled-components/native';
 import PropTypes from "prop-types";
 import {Item, ScrollWrapper, WheelScroller} from "./src/styles/wheel";
 import WheelItems from "./src/WheelItems";
@@ -77,6 +78,10 @@ const App = (props) => {
 
     return (
         <ScrollWrapper height={height} width={width}>
+            <WheelCover height={height}>
+                <SelectedOptionCover selectedArea={selectedArea} selectedColor={selectedColor} />
+            </WheelCover>
+
             <WheelScroller
                 decelerationRate={decelerationRate}
                 as={Animated.ScrollView}
@@ -134,5 +139,22 @@ App.defaultProps = {
     .fill("")
     .map((_, i) => i + 1)
 };
+
+const WheelCover = styled.View`
+    position: absolute;
+    width: 100;
+    height: ${props => props.height};
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+`;
+
+const SelectedOptionCover = styled.View`
+    width: 100;
+    height: ${props => props.selectedArea};
+    border-color: ${props => props.selectedColor || 'white'};
+    border-top-width: 1;
+    border-bottom-width: 1;
+`;
 
 export default App;
