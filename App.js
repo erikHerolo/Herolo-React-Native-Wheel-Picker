@@ -1,115 +1,167 @@
-import React, { useRef, useCallback } from 'react';
-import { Text } from 'react-native';
-import PropTypes from 'prop-types';
-import { ScrollWrapper, Item, ItemText, WheelScroller, Cover } from './styles/wheel';
-import { lockOnItem } from './utils/functions';
+import React, {useCallback, useRef} from "react";
+import {Animated, Text, View} from "react-native";
+import PropTypes from "prop-types";
+import styled from 'styled-components';
+import {Item, ScrollWrapper, WheelScroller} from "./src/styles/wheel";
+import WheelItems from "./src/WheelItems";
+import {lockOnItem} from "./src/utils/functions";
 
-const App = ({
-  height,
-  width,
-  items,
-  itemStyles,
-  textStyles,
-  borderWidth,
-  selected,
-  onSelect,
-  borderColor,
-  options,
-}) => {
-  const doesIndexExist = options.length > selected && selected >= 0;
-  selected = doesIndexExist ? selected : 0;
-
-  if (!doesIndexExist) {
-    console.warn('given index is out of range');
-  }
-
-  const scroller = useRef(null);
-
-  const itemHeight = height / items;
-
-  // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
-  const spaces = isTop =>
-    Array(items / 2 - 0.5)
-      .fill(' ')
-      .map((item, index) => (
-        <Item key={isTop ? `top-space${index}` : `bottom-space${index}`} style={itemStyles} itemHeight={itemHeight}>
-          <Text>{item}</Text>
-        </Item>
-      ));
-
-  const createList = useCallback((itemStyles, textStyles) => {
-    return [
-      ...spaces(true),
-      ...options.map((value, index) => (
-        <Item key={index} style={itemStyles} itemHeight={itemHeight}>
-          <ItemText style={textStyles}>{value}</ItemText>
-        </Item>
-      )),
-      ...spaces(false),
-    ];
-  }, []);
-
-  const initialLock = useCallback(
-    offset =>
-      lockOnItem({
-        offset,
-        itemHeight,
-        scroller,
+const App = (props) => {
+    let {
+        height,
+        width,
+        numOfDisplayedItems,
+        itemStyles,
+        selectedColor,
+        borderWidth,
+        selected,
         onSelect,
+        borderColor,
         options,
-      }),
-    [options, onSelect, itemHeight]
-  );
+        selectedItemStyle,
+        decelerationRate,
+        scrollEventThrottle
+    } = props;
 
-  //TODO: Make two covers with border top/bottom instead of one
+    const doesIndexExist = options.length > selected && selected >= 0;
+    selected = doesIndexExist ? selected : 0;
 
-  return (
-    <ScrollWrapper height={height} width={width}>
-      <Cover
-        pointerEvents="box-none"
-        itemHeight={itemHeight}
-        borderWidth={borderWidth}
-        borderColor={borderColor}
-        items={items}
-      />
-      <WheelScroller
-        onLayout={() => initialLock(selected * itemHeight)}
-        showsVerticalScrollIndicator={false}
-        ref={scroller}
-        onMomentumScrollEnd={event => initialLock(event.nativeEvent.contentOffset.y)}
-      >
-        {createList(itemStyles, textStyles)}
-      </WheelScroller>
-    </ScrollWrapper>
-  );
+    if (!doesIndexExist) {
+        console.warn("Given index is out of range");
+    }
+
+    const scroller = useRef(null);
+
+    const itemHeight = height / numOfDisplayedItems;
+    const itemSurface = 2 * itemHeight * (numOfDisplayedItems / 2) * Math.sin(Math.PI / (2 * numOfDisplayedItems));
+    const selectedArea = itemSurface;
+
+    // Creates empty items to be able to choose first and last items from given array, without the empty items user cant reach to first or last item
+    const spaces = isTop =>
+        Array(numOfDisplayedItems / 2 - 0.5)
+            .fill(" ")
+            .map((item, index) => (
+                <Item
+                    key={isTop ? `top-space${index}` : `bottom-space${index}`}
+                    style={itemStyles}
+                    itemHeight={itemHeight}
+                >
+                    <Text>{item}</Text>
+                </Item>
+            ));
+
+    const initialLock = useCallback(
+        offset => {
+            lockOnItem({
+                offset,
+                itemHeight,
+                scroller,
+                onSelect,
+                options
+            });
+        },
+        [options, onSelect, itemHeight]
+    );
+    const animatedValueScrollY = new Animated.Value(0);
+
+    const onMomentumScrollEnd = event => {
+        initialLock(event.nativeEvent.contentOffset.y);
+    };
+
+    const onScroll = useCallback(Animated.event(
+        [{nativeEvent: {contentOffset: {y: animatedValueScrollY}}}],
+        {
+            useNativeDriver: true
+        }),[animatedValueScrollY]);
+
+    //TODO: Make two covers with border top/bottom instead of one
+
+    return (
+        <ExampleContainer>
+            <ScrollWrapper height={height} width={width}>
+                <WheelCover height={height}>
+                    <SelectedOptionCover selectedArea={selectedArea} selectedColor={selectedColor} />
+                </WheelCover>
+                <WheelScroller
+                    decelerationRate={decelerationRate}
+                    as={Animated.ScrollView}
+                    onLayout={() => initialLock(selected * itemHeight)}
+                    ref={scroller}
+                    onScroll={onScroll}
+                    scrollEventThrottle={scrollEventThrottle}
+                    showsVerticalScrollIndicator={false}
+                    onMomentumScrollEnd={onMomentumScrollEnd}
+                >
+                    <WheelItems
+                        itemStyle={selectedItemStyle}
+                        options={options} itemStyles={itemStyles} selectedColor={selectedColor}
+                        animationValue={animatedValueScrollY} itemHeight={itemHeight}
+                        numOfDisplayedItems={numOfDisplayedItems} selectedArea={selectedArea}
+                    />
+                </WheelScroller>
+            </ScrollWrapper>
+        </ExampleContainer>
+    );
 };
 
+const ExampleContainer = styled.View`
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+`;
+
+const WheelCover = styled.View`
+    position: absolute;
+    width: 100;
+    height: ${props => props.height};
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+`;
+
+const SelectedOptionCover = styled.View`
+    width: 100;
+    height: ${props => props.selectedArea};
+    border-color: ${props => props.selectedColor || 'white'};
+    border-top-width: 1;
+    border-bottom-width: 1;
+`;
+
 App.propTypes = {
-  height: PropTypes.number,
-  width: PropTypes.number,
-  items: PropTypes.number,
-  itemStyles: PropTypes.object,
-  textStyles: PropTypes.object,
-  borderWidth: PropTypes.number,
-  selected: PropTypes.number,
-  onSelect: PropTypes.func.isRequired,
-  borderColor: PropTypes.string,
-  options: PropTypes.array.isRequired,
+    height: PropTypes.number,
+    width: PropTypes.number,
+    numOfDisplayedItems: PropTypes.number,
+    itemStyles: PropTypes.object,
+    borderWidth: PropTypes.number,
+    selected: PropTypes.number,
+    selectedColor: PropTypes.string,
+    onSelect: PropTypes.func.isRequired,
+    borderColor: PropTypes.string,
+    options: PropTypes.array.isRequired,
+    selectedItemStyle: PropTypes.object,
+    decelerationRate: PropTypes.number,
+    scrollEventThrottle: PropTypes.number
 };
 
 App.defaultProps = {
-  height: 200,
-  width: 80,
-  items: 7,
-  itemStyles: {},
-  textStyles: {},
-  borderWidth: 2,
-  selected: 9,
-  onSelect: value => console.log('value: ', value),
-  borderColor: 'black',
-  options: Array(50)
-    .fill('')
-    .map((_, i) => i + 50),
+    height: 200,
+    width: 80,
+    numOfDisplayedItems: 5,
+    chosenItemStyle: {
+        color: 'red'
+    },
+    decelerationRate: 0.95,
+    scrollEventThrottle: 16,
+    itemStyles: { },
+    borderWidth: 2,
+    selected: 3,
+    selectedColor: 'red',
+    selectedItemStyle: {},
+    onSelect: value => {},
+    borderColor: "black",
+    options: Array(100)
+    .fill("")
+    .map((_, i) => i + 1)
 };
 
 export default App;
